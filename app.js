@@ -1,4 +1,5 @@
 const Koa = require('koa')
+const cors = require('koa2-cors')
 const app = new Koa()
 const views = require('koa-views')
 const json = require('koa-json')
@@ -14,6 +15,21 @@ const wechatapp =require('./public/wechat_robot/wechat')
 onerror(app)
 wechatapp.app.start();
 // middlewares
+app.use(cors(
+  {
+    origin: function(ctx) {
+      if (ctx.url === '/test') {
+        return false;
+      }
+      return '*';
+    },
+    exposeHeaders: ['WWW-Authenticate', 'Server-Authorization'],
+    maxAge: 5,
+    credentials: true,
+    allowMethods: ['GET', 'POST', 'DELETE'],
+    allowHeaders: ['Content-Type', 'Authorization', 'Accept'],
+  }
+))
 app.use(bodyparser({
   enableTypes:['json', 'form', 'text']
 }))

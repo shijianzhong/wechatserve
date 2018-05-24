@@ -14,9 +14,11 @@ bot.on('scan', (url, code) => {
         const loginUrl = url.replace(/\/qrcode\//, '/l/')
 
         router.get('/loginul', function (ctx, next) {
-            ctx.body = 'this is a users/bar response'+loginUrl
+            ctx.body = {
+                loginUrl:loginUrl
+            }
           })
-        QrcodeTerminal.generate(loginUrl, { small: true })
+        // QrcodeTerminal.generate(loginUrl, { small: true })
     }
 })
 // 登录成功
