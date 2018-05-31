@@ -64,6 +64,8 @@ bot.on('scan', (url, code) => {
         const contact = m.from() //发送人
         const content = m.content() //内容
         const room = m.room() //群  room.topic()
+        const tels =content.match(/((((13[0-9])|(15[^4])|(18[0,1,2,3,5-9])|(17[0-8])|(147))\d{8})|((\d3,4|\d{3,4}-|\s)?\d{7,14}))?/g)
+        const tel = tels.filter((x) => { if (x) { tel = x } })
         if (room) {
             var contet = null;
             one.forEach(item => {
@@ -71,7 +73,9 @@ bot.on('scan', (url, code) => {
                     contet = {
                         type: 1,
                         author: contact.name(),
-                        msg: content
+                        wxid:contact.id,
+                        msg: content.replace(/(<img.*?)>/gi, ''),
+                        tel:tel
                     }
                 }
             })
@@ -80,7 +84,9 @@ bot.on('scan', (url, code) => {
                     contet = {
                         type: 2,
                         author: contact.name(),
-                        msg: content
+                        wxid:contact.id,
+                        msg: content.replace(/(<img.*?)>/gi, ''),
+                        tel:tel
                     }
                 }
             })
