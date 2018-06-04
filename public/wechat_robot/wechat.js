@@ -16,7 +16,7 @@ const two = ['人寻车', '人找车', '找车', '寻车']
 var msgMap = new Map();
 
 
-router.get('/msglist', function(ctx, next) {
+router.get('/msglist', function (ctx, next) {
 
     request('https://api.it120.cc/360mall/json/list', (error, response, body) => {
         if (!error && response.statusCode == 200) {
@@ -28,6 +28,21 @@ router.get('/msglist', function(ctx, next) {
             }
             ctx.body = {
                 requestdata: body
+            }
+        }
+    })
+})
+router.get('/delate', (ctx, next) => {
+    request('https://api.it120.cc/360mall/json/list', function(error, response, body) {
+        if (!error && response.statusCode == 200) {
+            let resul = JSON.parse(body);
+            if (resul.code == 0) {
+                resul.data.forEach(item => {
+                    msgMap.set(item.jsonData.author, item.id)
+                    request('https://api.it120.cc/360mall/json/delete?id=' + item.id, function(error, response, body) {
+
+                    })
+                })
             }
         }
     })
@@ -56,7 +71,7 @@ function sendMsg(text, desp) {
             text: text,
             desp: desp
         }
-    }, function(error, response, body) {
+    }, function (error, response, body) {
         if (!error && response.statusCode == 200) {}
     })
 }
@@ -65,20 +80,20 @@ bot.on('scan', (url, code) => {
         if (!/201|200/.test(String(code))) {
             console.log(`请扫描二维码完成登录: `)
             const loginUrl = url.replace(/\/qrcode\//, '/l/')
-                // request('https://api.it120.cc/360mall/json/list', function(error, response, body) {
-                //     if (!error && response.statusCode == 200) {
-                //         let resul = JSON.parse(body);
-                //         if (resul.code == 0) {
-                //             resul.data.forEach(item => {
-                //                 msgMap.set(item.jsonData.author, item.id)
-                //                 request('https://api.it120.cc/360mall/json/delete?id=' + item.id, function(error, response, body) {
+            // request('https://api.it120.cc/360mall/json/list', function(error, response, body) {
+            //     if (!error && response.statusCode == 200) {
+            //         let resul = JSON.parse(body);
+            //         if (resul.code == 0) {
+            //             resul.data.forEach(item => {
+            //                 msgMap.set(item.jsonData.author, item.id)
+            //                 request('https://api.it120.cc/360mall/json/delete?id=' + item.id, function(error, response, body) {
 
             //                 })
             //             })
             //         }
             //     }
             // })
-            router.get('/loginul', function(ctx, next) {
+            router.get('/loginul', function (ctx, next) {
                 ctx.body = {
                     loginUrl: loginUrl
                 }
@@ -108,7 +123,11 @@ bot.on('scan', (url, code) => {
         const content = m.content() //内容
         const room = m.room() //群  room.topic()
         const tels = content.match(/((((13[0-9])|(15[^4])|(18[0,1,2,3,5-9])|(17[0-8])|(147))\d{8})|((\d3,4|\d{3,4}-|\s)?\d{7,14}))?/g)
-        const tel = tels.filter((x) => { if (x) { return x } })
+        const tel = tels.filter((x) => {
+            if (x) {
+                return x
+            }
+        })
         console.log(`${contact.name()}-----发送了----：${content}`)
 
         if (room) {
@@ -138,7 +157,9 @@ bot.on('scan', (url, code) => {
 
             if (contet) {
                 sendMsg(contact.name(), content) //发送日志
-                let postdata = { content: JSON.stringify(contet) };
+                let postdata = {
+                    content: JSON.stringify(contet)
+                };
                 getInfoList().then(() => {
                     if (msgMap.has(contact.name())) {
                         postdata['id'] = msgMap.get(contact.name());
@@ -146,7 +167,7 @@ bot.on('scan', (url, code) => {
                     request.post({
                         url: 'https://api.it120.cc/360mall/json/set',
                         formData: postdata
-                    }, function(error, response, body) {
+                    }, function (error, response, body) {
                         if (!error && response.statusCode == 200) {}
                     })
                 })
