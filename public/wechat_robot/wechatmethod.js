@@ -1,8 +1,8 @@
 var request = require('request');
 class WechatMethod {
-    static getMsgList() {
+    static getMsgList(page) {
         return new Promise((resolve, reject) => {
-            request('https://api.it120.cc/360mall/json/list', (error, response, body) => {
+            request('https://api.it120.cc/360mall/json/list?page=' + page, (error, response, body) => {
                 if (!error && response.statusCode == 200) {
                     resolve(body)
                 }
@@ -26,14 +26,13 @@ class WechatMethod {
         })
     }
     static deleteInfo(id) { //删除数据
-        request('https://api.it120.cc/360mall/json/delete?id=' + id, function (error, response, body) {
-        })
+        request('https://api.it120.cc/360mall/json/delete?id=' + id, function(error, response, body) {})
     }
     static postData(postadta) {
         request.post({
             url: 'https://api.it120.cc/360mall/json/set',
             formData: postadta
-        }, function (error, response, body) {
+        }, function(error, response, body) {
             if (!error && response.statusCode == 200) {}
         })
     }
@@ -44,7 +43,7 @@ class WechatMethod {
                 text: text,
                 desp: desp
             }
-        }, function (error, response, body) {
+        }, function(error, response, body) {
             if (!error && response.statusCode == 200) {}
         })
     }

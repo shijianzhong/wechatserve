@@ -13,22 +13,22 @@ var request = require('request');
 
 router.prefix('/wechat')
 const one = ['车寻人', '车找人', '找人', '寻人', '满人', '满车', '车满', '人满']
-const two = ['人寻车', '人找车', '找车', '寻车']
+const two = ['人寻车', '人找车', '找车', '寻车', '找个车']
 var msgMap = new Map();
-router.get('/msglist', async function (ctx, next) {  //获取信息列表
-    let result =await wechatmethod.getMsgList();
-    ctx.body =result;
+router.get('/msglist', async function(ctx, next) { //获取信息列表
+    let result = await wechatmethod.getMsgList(ctx.query.page);
+    ctx.body = result;
 })
 router.get('/delate', (ctx, next) => {
 
 })
 
-// 登录二维码
+// 登录二维码···
 bot.on('scan', (url, code) => {
         if (!/201|200/.test(String(code))) {
             console.log(`请扫描二维码完成登录: `)
             const loginUrl = url.replace(/\/qrcode\//, '/l/')
-            router.get('/loginul', function (ctx, next) {
+            router.get('/loginul', function(ctx, next) {
                 ctx.body = {
                     loginUrl: loginUrl
                 }
