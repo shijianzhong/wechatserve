@@ -1,10 +1,12 @@
 const router = require('koa-router')()
 const userctrl = require('../public/controller/usercontroller')
 const wechatapp =require('../public/wechat_robot/wechat')
-
+const padch =require('../public/controller/padchatcontroller')
+const htmlqrcode =require ('qrcode')
 router.get('/', async (ctx, next) => {
-  await ctx.render('index', {
-    title: 'Hello Koa 2!'
+
+  await ctx.render('wxcode', {
+    title: await htmlqrcode.toDataURL(padch.padurl)
   })
 })
 

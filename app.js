@@ -7,13 +7,17 @@ const onerror = require('koa-onerror')
 const bodyparser = require('koa-bodyparser')
 const logger = require('koa-logger')
 const { Wechaty, Room, Contact, MediaMessage } = require('wechaty')
+
 const index = require('./routes/index')
 const users = require('./routes/users')
 const wechatapp = require('./public/wechat_robot/wechat')
-
+const padchatapp = require('./public/padchat_robot/padchat')
 // error handler
 onerror(app)
-wechatapp.app.start();
+/**
+ * 若基于wechat则取消注释
+ */
+// wechatapp.app.start();
 // middlewares
 app.use(cors({
     origin: function(ctx) {
