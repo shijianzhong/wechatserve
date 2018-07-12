@@ -9,6 +9,42 @@ class WechatMethod {
             })
         })
     }
+    // dateAdd":"2018-07-12 15:10:04","dateUpdate":"2018-07-12 15:10:33"
+    static getMsgListForGXH(keywords){
+        return new Promise((resolve, reject) => {
+            request('https://api.it120.cc/360mall/json/list?page=1&pageSize=400', (error, response, body) => {
+                if (!error && response.statusCode == 200) {
+                    let lsmonth =new Date().getMonth()+1;
+                    let month =lsmonth.toString().length==1?`0${lsmonth}`:lsmonth;
+                    
+                    let lsdate =new Date().getDate();
+                    let dt =lsdate.toString().length==1?`0${lsdate}`:lsdate;
+
+                    var str = `${new Date().getFullYear()}-${month}-${dt}`
+                    let resul = JSON.parse(body);
+                    var newresul;
+                    if(resul.code==0){
+                        newresul=  resul.data.filter(item=>{
+                            if(item.dateUpdate){
+                                if((item.dateUpdate.split(' ')[0]==str)&&(item.jsonData.msg.indexOf(keywords)>-1)){
+                                    return true
+                                }
+                                return false
+                            }else{
+                                if((item.dateAdd.split(' ')[0]==str)&&(item.jsonData.msg.indexOf(keywords)>-1)){
+                                    return true
+                                }
+                                return false
+                            }
+                            
+                        })
+                    }
+
+                    resolve(newresul)
+                }
+            })
+        })
+    }
     static getInfoList() {
         return new Promise((resolve, reject) => {
             request('https://api.it120.cc/360mall/json/list', (error, response, body) => {

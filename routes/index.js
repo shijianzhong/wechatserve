@@ -1,17 +1,53 @@
 const router = require('koa-router')()
 const userctrl = require('../public/controller/usercontroller')
-const wechatapp =require('../public/wechat_robot/wechat')
-const padch =require('../public/controller/padchatcontroller')
-const htmlqrcode =require ('qrcode')
+const wechatapp = require('../public/wechat_robot/wechat')
+const padch = require('../public/controller/padchatcontroller')
+const htmlqrcode = require('qrcode')
+const wxgzhmethod = require('../public/wxgzh/publicmethod')
+const wechatmethod = require('../public/wechat_robot/wechatmethod')
+const crypto = require('crypto')
 router.get('/', async (ctx, next) => {
-
-  await ctx.render('wxcode', {
-    title: await htmlqrcode.toDataURL(padch.padurl)
-  })
+  const result = wxgzhmethod.auth(ctx)
+  if (result) {
+    ctx.body = ctx.query.echostr
+  } else {
+    ctx.body = {
+      code: -1,
+      msg: "You aren't wechat server !"
+    }
+  }
 })
+router.post('/', async (ctx, next) => {
+  let msg,
+    MsgType,
+    result,
+    content
 
+  msg = ctx.req.body ? ctx.req.body.xml : ''
+
+  if (!msg) {
+    ctx.body = 'error request.'
+    return;
+  }
+  
+  content =msg.Content[0];
+  MsgType = msg.MsgType[0];
+  let ooresult =await  wechatmethod.getMsgListForGXH(content);
+  console.log(`MsgType--------${MsgType}-----${msg.Content}`)
+  switch (MsgType) {
+    case 'text':
+      result = wxgzhmethod.message(msg, msg.Content)
+      break;
+    default:
+      result = 'success'
+  }
+  ctx.res.setHeader('Content-Type', 'application/xml')
+  ctx.res.end(result)
+})
 router.get('/string', async (ctx, next) => {
   ctx.body = wechatapp.loginurl
+  wxgzhmethod.accesstoken = await wxgzhmethod.getAccessToken();
+  console.log(wxgzhmethod.accesstoken)
 })
 
 router.get('/json', async (ctx, next) => {
@@ -19,7 +55,7 @@ router.get('/json', async (ctx, next) => {
     title: 'koa2 json'
   }
 })
-router.get('/register',userctrl.register)
+router.get('/register', userctrl.register)
 
-router.get('/login',userctrl.login)
+router.get('/login', userctrl.login)
 module.exports = router
