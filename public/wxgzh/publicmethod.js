@@ -41,6 +41,26 @@ class MPController {
                 })
         })
     }
+    static sendMsg(token,requestData){
+		var url ="https://api.weixin.qq.com/cgi-bin/message/custom/send?access_token="+token;
+		console.log(url)        
+		return new Promise((resolve,reject)=>{
+			request({
+				url: url,
+				method: "POST",
+				json: true,
+				headers: {
+					"content-type": "application/json",
+				},
+				body: JSON.stringify(requestData)
+		}, (error, response, body)=> {
+				if (!error && response.statusCode == 200) {
+					console.log(body) // 请求成功的处理逻辑
+				}
+				console.log(response)
+			}	
+		)})
+	}
     static xmlToJson(str) {
         return new Promise((resolve, reject) => {
             const parseString = xml2js.parseString
