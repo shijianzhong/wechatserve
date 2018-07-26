@@ -31,9 +31,10 @@ class WechatMethod {
                                 }
                                 return false
                             }else{
+                                if(item.jsonData.msg){
                                 if((item.dateAdd.split(' ')[0]==str)&&(item.jsonData.msg.indexOf(keywords)>-1)){
                                     return true
-                                }
+                                }}
                                 return false
                             }
                             

@@ -33,7 +33,6 @@ router.post('/', async (ctx, next) => {
   content =msg.Content[0];
   MsgType = msg.MsgType[0];
   let ooresult =await  wechatmethod.getMsgListForGXH(content);
-  console.log(`MsgType--------${MsgType}-----${msg.Content}`)
   switch (MsgType) {
     case 'text':
       result = wxgzhmethod.message(msg, msg.Content)

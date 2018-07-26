@@ -229,6 +229,31 @@ wx
                     break
                 }
                 logger.info('收到来自 %s 的文本消息：', data.fromUser, data.description || data.content)
+                logger.info( data.userName)
+                logger.info( data.nickName)
+                logger.info( data.fromUser)
+                logger.info( data.description)
+                logger.info( data.content)
+                let commondMsg =data.content.split(':');
+                if(commondMsg.length>1){
+                    if(commondMsg[1].replace(/[\r\n]/g, '')=="汇总"){
+                        if(commondMsg.length>2){
+                            let oo = await wechatmethod.getMsgListForGXH(commondMsg[2]);
+                            await wx.sendMsg(data.fromUser,oo)
+                            .then(ret=>{})
+                            .catch(ret=>{
+                                wechatmethod.sendMsg('发送汇总失败',ret.message)
+                            });
+                        }else{
+                            let oo = await wechatmethod.getMsgListForGXH("");
+                            await wx.sendMsg(data.fromUser,oo)
+                            .then(ret=>{})
+                            .catch(ret=>{
+                                wechatmethod.sendMsg('发送汇总失败',ret.message)
+                            });;
+                        }
+                    }
+                }
                 if (/ding/.test(data.content)) {
                     await wx.sendMsg(data.fromUser, 'dong. receive:' + data.content)
                         .then(ret => {
