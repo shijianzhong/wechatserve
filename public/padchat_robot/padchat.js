@@ -12,6 +12,7 @@ const url = 'ws://52.80.34.207:7777'
 const wx = new Padchat(url)
 const router = require('koa-router')()
 const pchatController = require('../controller/padchatcontroller');
+const wechatmethod = require('../wechat_robot/wechatmethod');
 var request = require('request');
 try {
     require('fs').mkdirSync('./logs')
@@ -56,9 +57,11 @@ wx
         if (connected) {
             connected = false
             disconnectCount++
+            wechatmethod.sendMsg(`第 ${disconnectCount} 次与服务器连接断开！现在将重试连接服务器。`)
             logger.info(`第 ${disconnectCount} 次与服务器连接断开！现在将重试连接服务器。`)
         } else {
             logger.debug(`未能连接服务器！将重试连接服务器。`)
+            wechatmethod.sendMsg(`未能连接服务器！将重试连接服务器。`)
         }
         // 重新启动websocket连接
         wx.start()
@@ -81,15 +84,16 @@ wx
     })
     .on('qrcode', data => {
         if (data.url) {
-
+            wechatmethod.sendMsg('登陆二维码,请扫码登陆1', "登陆二维码,请扫码登陆2")
             console.log('登陆二维码url: %s ,请扫码登陆：', data.url)
-            qrcode.generate(data.url)
+            // qrcode.generate(data.url)cmd的二维码图
             pchatController.padurl = data.url;
             return
         } else if (data.qrCode) {
             console.log('登陆二维码图片数据，请输出到文件扫码。')
             return
         }
+        wechatmethod.sendMsg('没有发现二维码数据', "没有发现二维码数据")
         console.error('没有发现二维码数据!')
     })
     .on('scan', data => {
@@ -103,17 +107,21 @@ wx
             case 2:
                 switch (data.subStatus) {
                     case 0:
+                        wechatmethod.sendMsg('扫码成功！登陆成功！', "扫码成功！登陆成功！")
                         console.log('扫码成功！登陆成功！', data)
                         break;
                     case 1:
+                        wechatmethod.sendMsg('扫码成功！登陆失败！', "扫码成功！登陆失败！")
                         console.log('扫码成功！登陆失败！', data)
                         break;
                     default:
+                        wechatmethod.sendMsg('扫码成功！未知状态码！', "扫码成功！未知状态码！")
                         console.log('扫码成功！未知状态码！', data)
                         break;
                 }
                 break;
             case 3:
+                wechatmethod.sendMsg('二维码已过期', "二维码已过期")
                 console.log('二维码已过期', data)
                 break;
             case 4:
@@ -173,7 +181,215 @@ wx
     .on('loaded', () => {
         console.log('载入通讯录完成!')
     })
+    .on('push', async (data) => {
+        if ((data.mType !== 2) && !(data.mType === 10002 && data.fromUser === 'weixin')) {
+            // 输出除联系人以外的推送信息
+            dLog.info('push: \n%o', data)
+        }
+        let rawFile
+        switch (data.mType) {
+            case 2:
+                logger.info('收到推送联系人：%s - %s', data.userName, data.nickName)
+                break
 
+            case 3:
+                logger.info('收到来自 %s 的图片消息，包含图片数据：%s，xml内容：\n%s', data.fromUser, !!data.data, data.content)
+                rawFile = data.data || null
+                logger.info('图片缩略图数据base64尺寸：%d', rawFile.length)
+                await wx.getMsgImage(data)
+                    .then(ret => {
+                        rawFile = ret.data.image || ''
+                        logger.info('获取消息原始图片结果：%s, 获得图片base64尺寸：%d', ret.success, rawFile.length)
+                    })
+                logger.info('图片数据base64尺寸：%d', rawFile.length)
+                await wx.sendImage('filehelper', rawFile)
+                    .then(ret => {
+                        logger.info('转发图片信息给 %s 结果：', 'filehelper', ret)
+                    })
+                    .catch(e => {
+                        logger.warn('转发图片信息异常:', e.message)
+                    })
+                break
+
+            case 43:
+                logger.info('收到来自 %s 的视频消息，包含视频数据：%s，xml内容：\n%s', data.fromUser, !!data.data, data.content)
+                rawFile = data.data || null
+                if (!rawFile) {
+                    await wx.getMsgVideo(data)
+                        .then(ret => {
+                            rawFile = ret.data.video || ''
+                            logger.info('获取消息原始视频结果：%s, 获得视频base64尺寸：%d', ret.success, rawFile.length)
+                        })
+                }
+                logger.info('视频数据base64尺寸：%d', rawFile.length)
+                break
+
+            case 1:
+                if (data.fromUser === 'newsapp') { // 腾讯新闻发的信息太长
+                    break
+                }
+                logger.info('收到来自 %s 的文本消息：', data.fromUser, data.description || data.content)
+                if (/ding/.test(data.content)) {
+                    await wx.sendMsg(data.fromUser, 'dong. receive:' + data.content)
+                        .then(ret => {
+                            logger.info('回复信息给%s 结果：', data.fromUser, ret)
+                        })
+                        .catch(e => {
+                            logger.warn('回复信息异常:', e.message)
+                        })
+                } else if (/^#.*/.test(data.content) || /^[\w]*:\n#.*/.test(data.content)) {
+                    await onMsg(data)
+                        .catch(e => {
+                            logger.warn('处理信息异常：', e)
+                        })
+                }
+                break
+
+            case 34:
+                logger.info('收到来自 %s 的语音消息，包含语音数据：%s，xml内容：\n%s', data.fromUser, !!data.data, data.content)
+                // 超过30Kb的语音数据不会包含在推送信息中，需要主动拉取
+                rawFile = data.data || null
+                if (!rawFile) {
+                    // BUG: 超过60Kb的语音数据，只能拉取到60Kb，也就是说大约36~40秒以上的语音会丢失后边部分语音内容
+                    await wx.getMsgVoice(data)
+                        .then(ret => {
+                            rawFile = ret.data.voice || ''
+                            logger.info('获取消息原始语音结果：%s, 获得语音base64尺寸：%d，拉取到数据尺寸：%d', ret.success, rawFile.length, ret.data.size)
+                        })
+                }
+                logger.info('语音数据base64尺寸：%d', rawFile.length)
+                if (rawFile.length > 0) {
+                    let match = data.content.match(/length="(\d+)"/) || []
+                    const length = match[1] || 0
+                    match = data.content.match(/voicelength="(\d+)"/) || []
+                    const ms = match[1] || 0
+                    logger.info('语音数据语音长度：%d ms，xml内记录尺寸：%d', ms, length)
+
+                    await wx.sendVoice('filehelper', rawFile, ms)
+                        .then(ret => {
+                            logger.info('转发语音信息给 %s 结果：', 'filehelper', ret)
+                        })
+                        .catch(e => {
+                            logger.warn('转发语音信息异常:', e.message)
+                        })
+                }
+                break
+
+            case 49:
+
+                if (data.content.indexOf('<![CDATA[微信红包]]>') > 0) {
+                    logger.info('收到来自 %s 的红包：', data.fromUser, data)
+                    await wx.queryRedPacket(data)
+                        .then(ret => {
+                            logger.info('未领取，查询来自 %s 的红包信息：', data.fromUser, ret)
+                        })
+                        .catch(e => {
+                            logger.warn('未领取，查询红包异常:', e.message)
+                        })
+                    await wx.receiveRedPacket(data)
+                        .then(async ret => {
+                            logger.info('接收来自 %s 的红包结果：', data.fromUser, ret)
+                            await wx.openRedPacket(data, ret.data.key)
+                                .then(ret2 => {
+                                    logger.info('打开来自 %s 的红包结果：', data.fromUser, ret2)
+                                })
+                                .catch(e => {
+                                    logger.warn('打开红包异常:', e.message)
+                                })
+                            await wx.queryRedPacket(data)
+                                .then(ret => {
+                                    logger.info('打开后，查询来自 %s 的红包信息：', data.fromUser, ret)
+                                })
+                                .catch(e => {
+                                    logger.warn('打开后，再次查询红包异常:', e.message)
+                                })
+                        })
+                        .catch(e => {
+                            logger.warn('接收红包异常:', e.message)
+                        })
+                } else if (data.content.indexOf('<![CDATA[微信转账]]>') > 0) {
+                    logger.info('收到来自 %s 的转账：', data.fromUser, data)
+                    await wx.queryTransfer(data)
+                        .then(ret => {
+                            logger.info('查询来自 %s 的转账信息：', data.fromUser, ret)
+                        })
+                        .catch(e => {
+                            logger.warn('查询转账异常:', e.message)
+                        })
+                    await wx.acceptTransfer(data)
+                        .then(ret => {
+                            logger.info('接受来自 %s 的转账结果：', data.fromUser, ret)
+                        })
+                        .catch(e => {
+                            logger.warn('接受转账异常:', e.message)
+                        })
+                    await wx.queryTransfer(data)
+                        .then(ret => {
+                            logger.info('接受后，查询来自 %s 的转账信息：', data.fromUser, ret)
+                        })
+                        .catch(e => {
+                            logger.warn('接受后，查询转账异常:', e.message)
+                        })
+                } else {
+                    logger.info('收到一条来自 %s 的appmsg富媒体消息：', data.fromUser, data)
+                }
+                break
+
+            case 10002:
+                if (data.fromUser === 'weixin') {
+                    //每次登陆，会收到一条系统垃圾推送，过滤掉
+                    break
+                }
+                logger.info('用户 %s 撤回了一条消息：', data.fromUser, data)
+                break
+
+            default:
+                logger.info('收到推送消息：', data)
+                break
+        }
+    })
+    .on('error', e => {
+        wechatmethod.sendMsg('ws 错误:', e.message);
+        logger.error('ws 错误:', e.message)
+    })
+    .on('warn', e => {
+        wechatmethod.sendMsg('任务出现错误', e.message);
+        logger.error('任务出现错误:', e.message)
+    })
+    .on('cmdRet', (cmd, ret) => {
+        //捕捉接口操作结果，补充接口文档用
+        dLog.info('%s ret: \n%s', cmd, util.inspect(ret, {
+            depth: 10
+        }))
+    })
+async function onMsg(data) {
+    const content = data.content.replace(/^[\w:\n]*#/m, '')
+    let [cmd, ...args] = content.split('\n')
+
+    args = args.map(str => {
+        try {
+            str = JSON.parse(str)
+        } catch (e) {}
+        return str
+    })
+    if (cmd && wx[cmd] && typeof wx[cmd] === 'function') {
+        logger.info('执行函数 %s，参数：', cmd, args)
+        await wx[cmd](...args)
+            .then(ret => {
+                logger.info('执行函数 %s 结果：%o', cmd, ret)
+            })
+            .catch(e => {
+                logger.warn('执行函数 %s 异常：', e)
+            })
+    }
+}
+process.on('uncaughtException', e => {
+    logger.error('Main', 'uncaughtException:', e)
+})
+
+process.on('unhandledRejection', e => {
+    logger.error('Main', 'unhandledRejection:', e)
+})
 var padchatapp = {
     app: wx,
     router: router

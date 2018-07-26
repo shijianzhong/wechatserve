@@ -11,10 +11,10 @@ router.get('/', async (ctx, next) => {
   if (result) {
     ctx.body = ctx.query.echostr
   } else {
-    ctx.body = {
-      code: -1,
-      msg: "You aren't wechat server !"
-    }
+    await ctx.render('index',{
+      title:'哥们，你访问这里是想做什么呢，赶快回去把',
+      hrf:'www.sharedrive.cn'
+  })
   }
 })
 router.post('/', async (ctx, next) => {

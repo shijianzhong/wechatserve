@@ -12,7 +12,7 @@ const index = require('./routes/index')
 const receivemsg = require('./routes/receivemsg')
 const users = require('./routes/users')
 const wechatapp = require('./public/wechat_robot/wechat')
-// const padchatapp = require('./public/padchat_robot/padchat')
+const padchatapp = require('./public/padchat_robot/padchat')
 // error handler
 onerror(app)
 /**
