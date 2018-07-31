@@ -30,12 +30,10 @@ router.post('/', async (ctx, next) => {
     return;
   }
   
-  content =msg.Content[0];
   MsgType = msg.MsgType[0];
-  let ooresult =await  wechatmethod.getMsgListForGXH(content);
   switch (MsgType) {
     case 'text':
-      result = wxgzhmethod.message(msg, msg.Content)
+      result = wxgzhmethod.message(msg, wxgzhmethod.msg)
       break;
     default:
       result = 'success'
