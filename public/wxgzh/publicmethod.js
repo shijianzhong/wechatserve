@@ -78,6 +78,7 @@ class MPController {
         return builder.buildObject(obj)
     }
 }
+MPController.pbmsg=""
 MPController.msg=""
 MPController.accesstoken = ""
 module.exports = MPController

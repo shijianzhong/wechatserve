@@ -14,6 +14,7 @@ const router = require('koa-router')()
 const pchatController = require('../controller/padchatcontroller');
 const wechatmethod = require('../wechat_robot/wechatmethod');
 var request = require('request');
+var roomsArray=[];
 try {
     require('fs').mkdirSync('./logs')
 } catch (e) {
@@ -190,6 +191,9 @@ wx
         switch (data.mType) {
             case 2:
                 logger.info('收到推送联系人：%s - %s', data.userName, data.nickName)
+                if(data.userName.indexOf('@')>-1){
+                    roomsArray.push(data.userName);
+                }
                 break
 
             case 3:
@@ -418,5 +422,16 @@ process.on('unhandledRejection', e => {
 var padchatapp = {
     app: wx,
     router: router
+}
+padchatapp.Sns=function(){
+    roomsArray.forEach(item=>{
+        await wx.sendMsg(item, 'o')
+        .then(ret => {
+            logger.info('回复信息给%s 结果：', data.fromUser, ret)
+        })
+        .catch(e => {
+            logger.warn('回复信息异常:', e.message)
+        })
+    })
 }
 module.exports = padchatapp;
