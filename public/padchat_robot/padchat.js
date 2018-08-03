@@ -14,7 +14,7 @@ const router = require('koa-router')()
 const pchatController = require('../controller/padchatcontroller');
 const wechatmethod = require('../wechat_robot/wechatmethod');
 var request = require('request');
-var roomsArray=[];
+var roomsArray = [];
 try {
     require('fs').mkdirSync('./logs')
 } catch (e) {
@@ -191,8 +191,10 @@ wx
         switch (data.mType) {
             case 2:
                 logger.info('收到推送联系人：%s - %s', data.userName, data.nickName)
-                if(data.userName.indexOf('@')>-1){
-                    roomsArray.push(data.userName);
+                if (data.userName.indexOf('@') > -1) {
+                    if (roomsArray.indexOf(data.userName) < 0) {
+                        roomsArray.push(data.userName);
+                    }
                 }
                 break
 
@@ -233,28 +235,28 @@ wx
                     break
                 }
                 logger.info('收到来自 %s 的文本消息：', data.fromUser, data.description || data.content)
-                logger.info( data.userName)
-                logger.info( data.nickName)
-                logger.info( data.fromUser)
-                logger.info( data.description)
-                logger.info( data.content)
-                let commondMsg =data.content.split(':');
-                if(commondMsg.length>1){
-                    if(commondMsg[1].replace(/[\r\n]/g, '')=="汇总"){
-                        if(commondMsg.length>2){
+                logger.info(data.userName)
+                logger.info(data.nickName)
+                logger.info(data.fromUser)
+                logger.info(data.description)
+                logger.info(data.content)
+                let commondMsg = data.content.split(':');
+                if (commondMsg.length > 1) {
+                    if (commondMsg[1].replace(/[\r\n]/g, '') == "汇总") {
+                        if (commondMsg.length > 2) {
                             let oo = await wechatmethod.getMsgListForGXH(commondMsg[2]);
-                            await wx.sendMsg(data.fromUser,oo)
-                            .then(ret=>{})
-                            .catch(ret=>{
-                                wechatmethod.sendMsg('发送汇总失败',ret.message)
-                            });
-                        }else{
+                            await wx.sendMsg(data.fromUser, oo)
+                                .then(ret => {})
+                                .catch(ret => {
+                                    wechatmethod.sendMsg('发送汇总失败', ret.message)
+                                });
+                        } else {
                             let oo = await wechatmethod.getMsgListForGXH("");
-                            await wx.sendMsg(data.fromUser,oo)
-                            .then(ret=>{})
-                            .catch(ret=>{
-                                wechatmethod.sendMsg('发送汇总失败',ret.message)
-                            });;
+                            await wx.sendMsg(data.fromUser, oo)
+                                .then(ret => {})
+                                .catch(ret => {
+                                    wechatmethod.sendMsg('发送汇总失败', ret.message)
+                                });;
                         }
                     }
                 }
@@ -423,15 +425,17 @@ var padchatapp = {
     app: wx,
     router: router
 }
-padchatapp.Sns=function(){
-    roomsArray.forEach(item=>{
-        await wx.sendMsg(item, 'o')
-        .then(ret => {
-            logger.info('回复信息给%s 结果：', data.fromUser, ret)
-        })
-        .catch(e => {
-            logger.warn('回复信息异常:', e.message)
-        })
+padchatapp.Sns = function () {
+    roomsArray.forEach(async (item) => {
+        setTimeout(
+            function () {
+                wx.sendMsg(item, pbms[0]).then(ret => {
+                    logger.info('success')
+                }).catch(e => {
+                    logger.warn('warn')
+                })
+            }, 10000
+        )
     })
 }
 module.exports = padchatapp;
