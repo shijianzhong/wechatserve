@@ -9,16 +9,16 @@ const logger = require('koa-logger')
 const { Wechaty, Room, Contact, MediaMessage } = require('wechaty')
 
 const index = require('./routes/index')
-const receivemsg = require('./routes/receivemsg')
+// const receivemsg = require('./routes/receivemsg')
 const users = require('./routes/users')
 const wechatapp = require('./public/wechat_robot/wechat')
-const padchatapp = require('./public/padchat_robot/padchat')
+// const padchatapp = require('./public/padchat_robot/padchat')
 // error handler
 onerror(app)
 /**
  * 若基于wechat则取消注释
  */
-// wechatapp.app.start();
+wechatapp.app.start();
 // middlewares
 app.use(cors({
     origin: function(ctx) {
@@ -53,7 +53,7 @@ app.use(async(ctx, next) => {
 })
 
 // routes
-app.use(receivemsg.routes(), receivemsg.allowedMethods())
+// app.use(receivemsg.routes(), receivemsg.allowedMethods())
 app.use(index.routes(), index.allowedMethods())
 app.use(users.routes(), users.allowedMethods())
 app.use(wechatapp.router.routes(), wechatapp.router.allowedMethods())

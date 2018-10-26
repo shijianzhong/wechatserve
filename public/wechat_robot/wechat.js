@@ -6,6 +6,7 @@ const {
 } = require('wechaty')
 const wechatmethod = require('./wechatmethod')
 const QrcodeTerminal = require('qrcode-terminal')
+const pchatController = require('../controller/padchatcontroller');
 const bot = Wechaty.instance()
 
 const router = require('koa-router')()
@@ -27,6 +28,7 @@ router.get('/delate', (ctx, next) => {
 bot.on('scan', (url, code) => {
         if (!/201|200/.test(String(code))) {
             console.log(`请扫描二维码完成登录: `)
+            pchatController.padurl = url;
             const loginUrl = url.replace(/\/qrcode\//, '/l/')
             router.get('/loginul', function(ctx, next) {
                 ctx.body = {
@@ -49,8 +51,8 @@ bot.on('scan', (url, code) => {
     .on('error', async m => {
         wechatmethod.sendMsg("机器人报错了", `${m}`)
     })
-    .on('friend', m => {
-        wechatmethod.sendMsg("有人加好友", `${m}`)
+    .on('friendship', friendship => {
+        wechatmethod.sendMsg("有人加好友", `${friendship}`)
     })
     // 自动回复
     .on('message', async m => {
