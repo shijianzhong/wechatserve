@@ -8,7 +8,7 @@ const wechatmethod = require('./wechatmethod')
 const QrcodeTerminal = require('qrcode-terminal')
 const pchatController = require('../controller/padchatcontroller');
 const bot = Wechaty.instance()
-
+const fs = require('fs');
 const router = require('koa-router')()
 var request = require('request');
 
@@ -30,6 +30,7 @@ bot.on('scan', (url, code) => {
             console.log(`请扫描二维码完成登录: `)
             pchatController.padurl = url;
             const loginUrl = url.replace(/\/qrcode\//, '/l/')
+            
             router.get('/loginul', function(ctx, next) {
                 ctx.body = {
                     loginUrl: loginUrl
@@ -57,7 +58,7 @@ bot.on('scan', (url, code) => {
     // 自动回复
     .on('message', async m => {
         const contact = m.from() //发送人
-        const content = m.content() //内容
+        const content = m.text() //内容
         const room = m.room() //群  room.topic()
         const tels = content.match(/((((13[0-9])|(15[^4])|(18[0,1,2,3,5-9])|(17[0-8])|(147))\d{8})|((\d3,4|\d{3,4}-|\s)?\d{7,14}))?/g)
         const tel = tels.filter((x) => {
@@ -65,6 +66,7 @@ bot.on('scan', (url, code) => {
                 return x
             }
         })
+        let sex  = contact.gender()==1?"男":"女"
         if (room) {
             var contet = null;
             one.forEach(item => {
@@ -74,7 +76,8 @@ bot.on('scan', (url, code) => {
                         author: contact.name(),
                         wxid: contact.id,
                         msg: content.replace(/(<img.*?)>/gi, ''),
-                        tel: tel[0]
+                        tel: tel[0],
+                        gender:sex,
                     }
                 }
             })
@@ -85,7 +88,8 @@ bot.on('scan', (url, code) => {
                         author: contact.name(),
                         wxid: contact.id,
                         msg: content.replace(/(<img.*?)>/gi, ''),
-                        tel: tel[0]
+                        tel: tel[0],
+                        gender:sex,
                     }
                 }
             })
