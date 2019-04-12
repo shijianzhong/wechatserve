@@ -53,7 +53,7 @@ app.use(async(ctx, next) => {
 })
 
 // routes
-// app.use(receivemsg.routes(), receivemsg.allowedMethods())
+app.use(receivemsg.routes(), receivemsg.allowedMethods())
 app.use(index.routes(), index.allowedMethods())
 app.use(users.routes(), users.allowedMethods())
 app.use(wechatapp.router.routes(), wechatapp.router.allowedMethods())
