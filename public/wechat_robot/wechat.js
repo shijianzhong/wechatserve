@@ -67,6 +67,13 @@ bot.on('scan', (url, code) => {
             }
         })
         let sex  = contact.gender()==1?"男":"女"
+        const file = await contact.avatar()
+        var imgtype = file.name.split('.')
+        var name =file.name
+        if(imgtype.length>1){
+            name = `./images/${contact.id}.${imgtype[imgtype.length-1]}`
+        }
+        await file.toFile(name, true)
         if (room) {
             var contet = null;
             one.forEach(item => {
@@ -78,6 +85,7 @@ bot.on('scan', (url, code) => {
                         msg: content.replace(/(<img.*?)>/gi, ''),
                         tel: tel[0],
                         gender:sex,
+                        headimg:file.name
                     }
                 }
             })
@@ -90,6 +98,7 @@ bot.on('scan', (url, code) => {
                         msg: content.replace(/(<img.*?)>/gi, ''),
                         tel: tel[0],
                         gender:sex,
+                        headimg:file.name
                     }
                 }
             })
