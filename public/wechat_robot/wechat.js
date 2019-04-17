@@ -85,7 +85,7 @@ bot.on('scan', (url, code) => {
                         msg: content.replace(/(<img.*?)>/gi, ''),
                         tel: tel[0],
                         gender:sex,
-                        headimg:file.name
+                        headimg:name
                     }
                 }
             })
@@ -98,7 +98,7 @@ bot.on('scan', (url, code) => {
                         msg: content.replace(/(<img.*?)>/gi, ''),
                         tel: tel[0],
                         gender:sex,
-                        headimg:file.name
+                        headimg:name
                     }
                 }
             })
