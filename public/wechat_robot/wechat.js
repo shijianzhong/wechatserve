@@ -105,7 +105,8 @@ bot.on('scan', (url, code) => {
             if (contet) {
                 wechatmethod.sendMsg(contact.name(), content) //发送日志
                 let postdata = {
-                    content: JSON.stringify(contet)
+                    content: JSON.stringify(contet),
+                    type:contet.type
                 };
                 msgMap = await wechatmethod.getInfoList();
                 if (msgMap.has(contact.name())) {
