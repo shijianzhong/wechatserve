@@ -1,58 +1,60 @@
-const router = require('koa-router')()
-const userctrl = require('../public/controller/usercontroller')
-const wechatapp = require('../public/wechat_robot/wechat')
-const padch = require('../public/controller/padchatcontroller')
-const htmlqrcode = require('qrcode')
-const wxgzhmethod = require('../public/wxgzh/publicmethod')
-const wechatmethod = require('../public/wechat_robot/wechatmethod')
-const crypto = require('crypto')
+/*
+ * @Description:
+ * @Author: shijianzhong
+ * @Date: 2019-04-09
+ */
+const router = require('koa-router')();
+const userctrl = require('../public/controller/usercontroller');
+const wechatapp = require('../public/wechat_robot/wechat');
+const padch = require('../public/controller/padchatcontroller');
+const htmlqrcode = require('qrcode');
+const wxgzhmethod = require('../public/wxgzh/publicmethod');
+const wechatmethod = require('../public/wechat_robot/wechatmethod');
+const crypto = require('crypto');
 router.get('/', async (ctx, next) => {
-  const result = wxgzhmethod.auth(ctx)
+  const result = wxgzhmethod.auth(ctx);
   if (result) {
-    ctx.body = ctx.query.echostr
+    ctx.body = ctx.query.echostr;
   } else {
-    await ctx.render('index',{
-      title:'哥们，你访问这里是想做什么呢，赶快回去把',
-      hrf:'www.sharedrive.cn'
-  })
+    await ctx.render('index', {
+      title: '哥们，你访问这里是想做什么呢，赶快回去把',
+      hrf: 'www.imeasy.cn'
+    });
   }
-})
+});
 router.post('/', async (ctx, next) => {
-  let msg,
-    MsgType,
-    result,
-    content
+  let msg, MsgType, result, content;
 
-  msg = ctx.req.body ? ctx.req.body.xml : ''
+  msg = ctx.req.body ? ctx.req.body.xml : '';
 
   if (!msg) {
-    ctx.body = 'error request.'
+    ctx.body = 'error request.';
     return;
   }
-  
+
   MsgType = msg.MsgType[0];
   switch (MsgType) {
     case 'text':
-      result = wxgzhmethod.message(msg, wxgzhmethod.msg)
+      result = wxgzhmethod.message(msg, wxgzhmethod.msg);
       break;
     default:
-      result = 'success'
+      result = 'success';
   }
-  ctx.res.setHeader('Content-Type', 'application/xml')
-  ctx.res.end(result)
-})
+  ctx.res.setHeader('Content-Type', 'application/xml');
+  ctx.res.end(result);
+});
 router.get('/string', async (ctx, next) => {
-  ctx.body = wechatapp.loginurl
+  ctx.body = wechatapp.loginurl;
   wxgzhmethod.accesstoken = await wxgzhmethod.getAccessToken();
-  console.log(wxgzhmethod.accesstoken)
-})
+  console.log(wxgzhmethod.accesstoken);
+});
 
 router.get('/json', async (ctx, next) => {
   ctx.body = {
     title: 'koa2 json'
-  }
-})
-router.get('/register', userctrl.register)
+  };
+});
+router.get('/register', userctrl.register);
 
-router.get('/login', userctrl.login)
-module.exports = router
+router.get('/login', userctrl.login);
+module.exports = router;

@@ -9,7 +9,7 @@ class UerController{
     static async login(ctx){
         await ctx.render('wxcode',{
             title:await htmlqrcode.toDataURL(padch.padurl),
-            hrf:'www.sharedrive.cn'
+            hrf:'www.imeasy.cn'
         })
     }
 }
