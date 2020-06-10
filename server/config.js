@@ -3,8 +3,8 @@ module.exports = {
     //数据库配置
     mysqlDB : {
 		host:'49.235.247.242',
-        user: 'sking',
-        password:'zxcvbnm',
+        user: '',
+        password:'z',
         database: 'wehcat'
     },
     upPath:'dist/upFile/',//上传路径
