@@ -23,7 +23,7 @@ api1.searchData().then(res=>{
     console.log(res)
 
 })
-api1.getMsgListForGXH('公园西门');
+// api1.getMsgListForGXH('公园西门');
 // api1.insertInfo().then(res=>{
 //     console.log(res)
 // })

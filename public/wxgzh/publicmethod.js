@@ -32,7 +32,8 @@ class MPController {
     }
     static getAccessToken() {
         return new Promise((resolve, reject) => {
-            request(``,
+            request(`https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=wxe930e462d424515a
+            &secret=6c2a4e29d033fdbfaede25046dfac2e3`,
                 (error, response, body) => {
                     if (!error && response.statusCode == 200) {
                         resolve(body)
