@@ -6,19 +6,31 @@ const json = require('koa-json')
 const onerror = require('koa-onerror')
 const bodyparser = require('koa-bodyparser')
 const logger = require('koa-logger')
-const { Wechaty, Room, Contact, MediaMessage } = require('wechaty')
 
 const index = require('./routes/index')
 const receivemsg = require('./routes/receivemsg')
 const users = require('./routes/users')
-const wechatapp = require('./public/wechat_robot/wechat')
+// const wechatapp = require('./public/wechat_robot/wechat')
 // const padchatapp = require('./public/padchat_robot/padchat')
+const wechatapp = require('./public/wechat_padplus/index')
+
+const api1 = require('./server/api')
 // error handler
 onerror(app)
+
+
+api1.searchData().then(res=>{
+    console.log(res)
+
+})
+api1.getMsgListForGXH('公园西门');
+// api1.insertInfo().then(res=>{
+//     console.log(res)
+// })
 /**
  * 若基于wechat则取消注释
  */
-wechatapp.app.start();
+// wechatapp.app.start();
 // middlewares
 app.use(cors({
     origin: function(ctx) {
@@ -46,6 +58,7 @@ app.use(views(__dirname + '/views', {
 
 // logger
 app.use(async(ctx, next) => {
+    
     const start = new Date()
     await next()
     const ms = new Date() - start

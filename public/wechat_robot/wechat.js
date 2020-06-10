@@ -5,6 +5,7 @@ const {
     MediaMessage
 } = require('wechaty')
 const wechatmethod = require('./wechatmethod')
+
 const QrcodeTerminal = require('qrcode-terminal')
 const pchatController = require('../controller/padchatcontroller');
 const bot = Wechaty.instance()
@@ -16,7 +17,8 @@ router.prefix('/wechat')
 const one = ['车寻人', '车找人', '找人', '寻人', '满人', '满车', '车满', '人满']
 const two = ['人寻车', '人找车', '找车', '寻车', '找个车']
 var msgMap = new Map();
-router.get('/msglist', async function(ctx, next) { //获取信息列表
+router.get('/msglist', async function(ctx, next) { //
+    
     let result = await wechatmethod.getMsgList(ctx.query.page);
     ctx.body = result;
 })

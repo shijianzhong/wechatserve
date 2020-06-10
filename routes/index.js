@@ -18,7 +18,7 @@ router.get('/', async (ctx, next) => {
   } else {
     await ctx.render('index', {
       title: '哥们，你访问这里是想做什么呢，赶快回去把',
-      hrf: 'www.imeasy.cn'
+      href: 'www.imeasy.cn'
     });
   }
 });
